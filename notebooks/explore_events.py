@@ -58,9 +58,13 @@ def _(list_data_csvs, mo):
 
 @app.cell
 def _(csv_path_dropdown, get_event_value_types, mo):
-    event_types = get_event_value_types(csv_path_dropdown.value)
-    mo.md(f"Found **{len(event_types)}** event types in `{csv_path_dropdown.value}`.")
-    return (event_types,)
+    csv_path = csv_path_dropdown.value or None
+    try:
+        event_types = get_event_value_types(csv_path)
+    except Exception as e:
+        mo.stop(True, mo.callout(str(e), kind="warn", title="Couldn't load the CSV"))
+    mo.md(f"Found **{len(event_types)}** event types in `{csv_path}`.")
+    return csv_path, event_types
 
 
 @app.cell(hide_code=True)
@@ -104,13 +108,13 @@ def _(mo):
 
 @app.cell
 def _(
-    csv_path_dropdown,
+    csv_path,
     event_dropdown,
     get_populated_event_option_columns,
     mo,
 ):
     populated_columns = get_populated_event_option_columns(
-        event_dropdown.value, csv_path_dropdown.value
+        event_dropdown.value, csv_path
     )
     mo.md(
         "**Populated `event_option.*` columns for this event type:**\n\n"
@@ -128,8 +132,8 @@ def _(mo):
 
 
 @app.cell
-def _(csv_path_dropdown, get_data_group_prefixes, mo):
-    data_group_prefixes = get_data_group_prefixes(csv_path_dropdown.value)
+def _(csv_path, get_data_group_prefixes, mo):
+    data_group_prefixes = get_data_group_prefixes(csv_path)
     prefix_select = mo.ui.multiselect(
         options=data_group_prefixes, label="Data group prefixes to include in export"
     )
@@ -148,14 +152,17 @@ def _(mo):
 @app.cell
 def _(
     build_filtered_dataframe,
-    csv_path_dropdown,
+    csv_path,
     event_dropdown,
     mo,
     prefix_select,
 ):
-    preview_df = build_filtered_dataframe(
-        event_dropdown.value, *prefix_select.value, csv_path=csv_path_dropdown.value
-    )
+    try:
+        preview_df = build_filtered_dataframe(
+            event_dropdown.value, *prefix_select.value, csv_path=csv_path
+        )
+    except Exception as e:
+        mo.stop(True, mo.callout(str(e), kind="warn", title="Couldn't build a preview"))
     mo.ui.table(preview_df.head())
     return
 
@@ -188,7 +195,7 @@ def _(mo):
 
 @app.cell
 def _(
-    csv_path_dropdown,
+    csv_path,
     event_dropdown,
     export_button,
     export_event_csv,
@@ -197,13 +204,16 @@ def _(
     prefix_select,
 ):
     if export_button.value:
-        output_path = export_event_csv(
-            event_dropdown.value,
-            *prefix_select.value,
-            csv_path=csv_path_dropdown.value,
-            output_path=output_path_input.value or None,
-        )
-        export_result = mo.md(f"Exported to `{output_path}`")
+        try:
+            output_path = export_event_csv(
+                event_dropdown.value,
+                *prefix_select.value,
+                csv_path=csv_path,
+                output_path=output_path_input.value or None,
+            )
+            export_result = mo.callout(f"Exported to `{output_path}`", kind="success")
+        except Exception as e:
+            export_result = mo.callout(str(e), kind="danger", title="Export failed")
     else:
         export_result = mo.md("_Click the button above to export the filtered CSV._")
     export_result
