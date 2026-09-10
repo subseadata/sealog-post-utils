@@ -1,3 +1,4 @@
+import functools
 import glob
 import os
 
@@ -6,6 +7,15 @@ import pandas as pd
 
 def list_data_csvs():
     return sorted(glob.glob(os.path.join("data", "*.csv")))
+
+
+@functools.lru_cache(maxsize=8)
+def _read_csv_cached(csv_path, mtime):
+    return pd.read_csv(csv_path)
+
+
+def _read_csv(csv_path):
+    return _read_csv_cached(csv_path, os.path.getmtime(csv_path))
 
 
 def _default_csv_path():
@@ -19,13 +29,13 @@ def _default_csv_path():
 
 
 def get_event_value_types(csv_path=None):
-    df = pd.read_csv(csv_path or _default_csv_path())
+    df = _read_csv(csv_path or _default_csv_path())
     return sorted(df["event_value"].dropna().unique().tolist())
 
 
 def get_populated_event_option_columns(event_value, csv_path=None):
     csv_path = csv_path or _default_csv_path()
-    df = pd.read_csv(csv_path)
+    df = _read_csv(csv_path)
     if event_value not in df["event_value"].dropna().unique():
         raise ValueError(f"event_value '{event_value}' not found in {csv_path}")
 
@@ -36,7 +46,7 @@ def get_populated_event_option_columns(event_value, csv_path=None):
 
 
 def get_data_group_prefixes(csv_path=None):
-    df = pd.read_csv(csv_path or _default_csv_path())
+    df = _read_csv(csv_path or _default_csv_path())
     columns = [col for col in df.columns if col != "ts" and not col.startswith("event") and "." in col]
     return sorted({col.split(".", 1)[0] for col in columns})
 
@@ -65,7 +75,7 @@ def _fold_uom_into_value_columns(df, unit_lookup_df):
 
 def build_filtered_dataframe(event_value, *data_group_prefixes, csv_path=None):
     csv_path = csv_path or _default_csv_path()
-    df = pd.read_csv(csv_path)
+    df = _read_csv(csv_path)
     if event_value not in df["event_value"].dropna().unique():
         raise ValueError(f"event_value '{event_value}' not found in {csv_path}")
 
