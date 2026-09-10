@@ -18,11 +18,9 @@ You do **not** need to separately install Python — `uv` takes care of that.
 ## 2. Get the code
 
 ```bash
-git clone <REPO_URL>
+git clone https://github.com/subseadata/sealog-post-utils.git
 cd sealog-post-utils
 ```
-
-Replace `<REPO_URL>` with this repository's GitHub URL once it's up.
 
 ## 3. Install dependencies
 
