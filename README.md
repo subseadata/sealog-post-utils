@@ -44,9 +44,10 @@ notebook's "Sealog export CSV path" field defaults to the first `*.csv` it finds
 just drop your file in there and open the notebook. You can still point it (or the `csv_path` argument of any
 function below) at any other path, e.g. `data/FKt260806_sealog_export.csv`.
 
-Filtered/exported CSVs go in `output/` (also gitignored). The notebook's "Output CSV path" field defaults to
-`output`, and `export_event_csv` auto-names the file inside it (`<event_value>_filtered.csv`) whenever
-`output_path` is a directory — pass a full file path instead if you want to control the name yourself.
+Filtered/exported CSVs go in `output/` (also gitignored) when using the "Save to disk" option in the notebook,
+or calling `export_event_csv` directly. Its output path field defaults to `output`, and `export_event_csv`
+auto-names the file inside it (`<event_value>_filtered.csv`) whenever `output_path` is a directory — pass a
+full file path instead if you want to control the name yourself.
 
 ## Using the utility functions
 
@@ -66,14 +67,18 @@ Available functions:
 - `get_event_value_types(csv_path)` — list all distinct `event_value` types in the export.
 - `get_populated_event_option_columns(event_value, csv_path)` — counts of populated `event_option.*` columns for a given event type.
 - `get_data_group_prefixes(csv_path)` — list of data group column prefixes present in the export.
+- `build_filtered_dataframe(event_value, *data_group_prefixes, csv_path)` — same filtering as `export_event_csv` below, but returns the resulting `pandas.DataFrame` instead of writing it anywhere.
 - `export_event_csv(event_value, *data_group_prefixes, csv_path, output_path)` — filter the export down to one event type and chosen data groups, writing the result to a new CSV. Only the `event_option.*` columns that are actually populated for the chosen event type are kept, and each data group's `*_value` column is renamed with its unit (e.g. `ctdSBE911.ctd_temperature_C`), with the redundant `*_uom` column dropped. If `output_path` is omitted or is a directory, the file is auto-named `<event_value>_filtered.csv` inside it (next to `csv_path` if omitted entirely).
 
 ## Marimo notebook
 
 An interactive [marimo](https://marimo.io) notebook that calls into these utilities lives at
 `notebooks/explore_events.py`. It lets you point at a Sealog export CSV, browse the event types found in it,
-pick one to filter by, choose which data groups to include, optionally name the output CSV, and export it
-with a button click. Launch it (editable, reactive UI) with:
+pick one to filter by, choose which data groups to include, preview the data that will be exported, and then
+either save the filtered CSV to disk (with an auto-suggested, editable filename) or download it straight from
+the browser — handy if you're running the notebook somewhere without direct filesystem access. Bad or missing
+input (no CSV in `data/`, an unreadable file, etc.) shows a friendly message instead of a raw error. Launch it
+(editable, reactive UI) with:
 
 ```bash
 uv run marimo edit notebooks/explore_events.py
