@@ -6,6 +6,8 @@ app = marimo.App(width="medium")
 
 @app.cell
 def _():
+    import os
+
     import marimo as mo
 
     from sealog_post_utils.sealog_post_utils import (
@@ -27,6 +29,7 @@ def _():
         get_populated_event_option_columns,
         list_data_csvs,
         mo,
+        os,
     )
 
 
@@ -164,31 +167,48 @@ def _(
     except Exception as e:
         mo.stop(True, mo.callout(str(e), kind="warn", title="Couldn't build a preview"))
     mo.ui.table(preview_df.head())
-    return
+    return (preview_df,)
 
 
 @app.cell(hide_code=True)
 def _(mo):
     mo.md(r"""
-    ## Edit or use the output filename for your filterd output
+    ## Choose how to get your filtered CSV
     """)
     return
 
 
 @app.cell
-def _(default_output_path, event_dropdown, mo):
-    output_path_input = mo.ui.text(
-        value=default_output_path(event_dropdown.value),
-        label="Output CSV path (a folder to auto-name into, or a full file path)",
-        full_width=True,
+def _(mo):
+    save_mode = mo.ui.radio(
+        options=["Save to disk", "Download"],
+        value="Save to disk",
+        label="",
     )
+    save_mode
+    return (save_mode,)
+
+
+@app.cell
+def _(default_output_path, event_dropdown, mo, save_mode):
+    if save_mode.value == "Save to disk":
+        output_path_input = mo.ui.text(
+            value=default_output_path(event_dropdown.value),
+            label="Output CSV path (a folder to auto-name into, or a full file path)",
+            full_width=True,
+        )
+    else:
+        output_path_input = None
     output_path_input
     return (output_path_input,)
 
 
 @app.cell
-def _(mo):
-    export_button = mo.ui.run_button(label="Export filtered CSV")
+def _(mo, save_mode):
+    if save_mode.value == "Save to disk":
+        export_button = mo.ui.run_button(label="Export filtered CSV")
+    else:
+        export_button = None
     export_button
     return (export_button,)
 
@@ -202,8 +222,11 @@ def _(
     mo,
     output_path_input,
     prefix_select,
+    save_mode,
 ):
-    if export_button.value:
+    if save_mode.value != "Save to disk":
+        export_result = None
+    elif export_button.value:
         try:
             output_path = export_event_csv(
                 event_dropdown.value,
@@ -217,6 +240,22 @@ def _(
     else:
         export_result = mo.md("_Click the button above to export the filtered CSV._")
     export_result
+    return
+
+
+@app.cell
+def _(default_output_path, event_dropdown, mo, os, preview_df, save_mode):
+    if save_mode.value == "Download":
+        download_filename = os.path.basename(default_output_path(event_dropdown.value))
+        download_button = mo.download(
+            data=lambda: preview_df.to_csv(index=False).encode("utf-8"),
+            filename=download_filename,
+            mimetype="text/csv",
+            label="Download filtered CSV",
+        )
+    else:
+        download_button = None
+    download_button
     return
 
 
