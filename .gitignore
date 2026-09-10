@@ -9,6 +9,12 @@ wheels/
 # Virtual environments
 .venv
 
+# macOS
+.DS_Store
+
+# Marimo local session/cache state
+__marimo__/
+
 # Local copies of sealog export data
 /data/*
 !/data/.gitkeep
