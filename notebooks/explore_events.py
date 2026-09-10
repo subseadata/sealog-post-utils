@@ -4,6 +4,14 @@ __generated_with = "0.24.0"
 app = marimo.App(width="medium")
 
 
+@app.cell(hide_code=True)
+def _(mo):
+    mo.md(r"""
+    # Filter and Export from Sealog csv's
+    """)
+    return
+
+
 @app.cell
 def _():
     import os
@@ -110,12 +118,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    csv_path,
-    event_dropdown,
-    get_populated_event_option_columns,
-    mo,
-):
+def _(csv_path, event_dropdown, get_populated_event_option_columns, mo):
     populated_columns = get_populated_event_option_columns(
         event_dropdown.value, csv_path
     )
@@ -153,13 +156,7 @@ def _(mo):
 
 
 @app.cell
-def _(
-    build_filtered_dataframe,
-    csv_path,
-    event_dropdown,
-    mo,
-    prefix_select,
-):
+def _(build_filtered_dataframe, csv_path, event_dropdown, mo, prefix_select):
     try:
         preview_df = build_filtered_dataframe(
             event_dropdown.value, *prefix_select.value, csv_path=csv_path
