@@ -2,6 +2,8 @@
 
 Utilities for post-processing Sealog expedition event export CSVs.
 
+> Just want to use the notebook? See [QUICKSTART.md](QUICKSTART.md) for a no-Python-experience-needed walkthrough.
+
 ## Requirements
 
 - Python 3.13+ (see `.python-version`)
