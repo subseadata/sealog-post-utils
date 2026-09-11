@@ -2,6 +2,10 @@
 
 Utilities for post-processing Sealog expedition event export CSVs.
 
+## Scope
+
+The current focus is the CSV event export produced by Schmidt Ocean Institute's [sealog-fkt](https://github.com/schmidtocean/sealog-server/tree/master/misc) instance, but nothing here is tied to that specifically — it could be generalized and expanded to other Sealog deployments or export shapes. The goal is to let you filter that export down to one event type and restructure it (dropping unpopulated columns, folding in units, choosing which sensor data groups to keep) so the output is simple and matches what you actually need, rather than handing you the full raw export every time.
+
 > Just want to use the notebook? See [QUICKSTART.md](QUICKSTART.md) for a no-Python-experience-needed walkthrough.
 
 ## Requirements
